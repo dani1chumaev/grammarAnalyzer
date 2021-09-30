@@ -1,37 +1,71 @@
 package Analyzer;
 
-import entity.Sequence;
-
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 
 public class Analyzer {
 
-    public static String analyzeGrammar(String grammar) {
+    public String analyze(String grammar) {
 
-        char[] chars = grammar.toCharArray();
+        List<String> rules = new ArrayList<>() {{
+            add("0");
+            add("01B");
+            add("10B");
+            add("10A");
+        }};
 
-        List<Sequence> sequences = new ArrayList<>();
+        StringBuilder buf = new StringBuilder(grammar);
+        StringBuilder sequence = new StringBuilder("");
 
-        char currentChar = ' ';
-        int count = 0;
+        for (int i = buf.length() - 1; i >= 0; i--) {
 
-        for (char character: chars
-             ) {
+            sequence.append(buf.charAt(i));
+            StringBuilder reverseSequence = new StringBuilder(sequence).reverse();
 
-            if (currentChar == ' ') {
-                currentChar = character;
-
+            int finalI = i;
+            if (rules.stream().noneMatch(r -> r.contains(reverseSequence) && finalI + 1 >= r.length() - sequence.length() + 1)) {
+                i += sequence.length() - 1;
+                sequence.delete(0, sequence.length());
+                reverseSequence.delete(0, reverseSequence.length());
             }
-            if (character != currentChar) {
-                sequences.add(new Sequence(currentChar, count));
-                currentChar = character;
-                count = 0;
+
+            if (reverseSequence.toString().equals("0")) {
+                buf.replace(i, i + 1, "B");
+                i = buf.length();
+                sequence.delete(0, sequence.length());
+                reverseSequence.delete(0, reverseSequence.length());
             }
-            count++;
+            if (reverseSequence.toString().equals("01B")) {
+                buf.replace(i, i + 3, "B");
+                i = buf.length();
+                sequence.delete(0, sequence.length());
+                reverseSequence.delete(0, reverseSequence.length());
+            }
+            if (reverseSequence.toString().equals("10B")) {
+                buf.replace(i, i + 3, "A");
+                i = buf.length();
+                sequence.delete(0, sequence.length());
+                reverseSequence.delete(0, reverseSequence.length());
+            }
+            if (reverseSequence.toString().equals("10A")) {
+                buf.replace(i, i + 3, "A");
+                i = buf.length();
+                sequence.delete(0, sequence.length());
+                reverseSequence.delete(0, reverseSequence.length());
+            }
+
         }
-        return "";
+
+        System.out.println(buf);
+
+        if(Arrays.stream(buf.toString().split("")).anyMatch(s -> s.matches("\\d"))) {
+            System.out.println("Неверная последовательность");
+            return "Неверная последовательность";
+        }
+
+        System.out.println("Верная последовательность");
+        return "Верная последовательность";
     }
 
 }
